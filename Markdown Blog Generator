@@ -1,0 +1,54 @@
+import os
+import markdown
+from jinja2 import Environment, FileSystemLoader
+
+# Directory paths
+BLOG_CONTENT_DIR = "content"
+OUTPUT_DIR = "output"
+TEMPLATE_DIR = "templates"
+
+# Set up Jinja2 environment
+env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+
+# Function to convert Markdown to HTML
+def convert_markdown_to_html(md_content):
+    return markdown.markdown(md_content)
+
+# Function to load a template
+def load_template(template_name):
+    return env.get_template(template_name)
+
+# Function to generate HTML for a single blog post
+def generate_post_html(post_title, post_content, template):
+    return template.render(title=post_title, content=post_content)
+
+# Function to process all Markdown files
+def process_blog_posts():
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
+    
+    # Load the blog template
+    template = load_template('blog_template.html')
+
+    for md_file in os.listdir(BLOG_CONTENT_DIR):
+        if md_file.endswith('.md'):
+            # Read Markdown content
+            with open(os.path.join(BLOG_CONTENT_DIR, md_file), 'r', encoding='utf-8') as file:
+                md_content = file.read()
+
+            # Convert Markdown to HTML
+            post_html_content = convert_markdown_to_html(md_content)
+
+            # Generate HTML post
+            post_title = md_file.replace('.md', '')
+            final_html = generate_post_html(post_title, post_html_content, template)
+
+            # Write the generated HTML to output folder
+            output_file_path = os.path.join(OUTPUT_DIR, f'{post_title}.html')
+            with open(output_file_path, 'w', encoding='utf-8') as html_file:
+                html_file.write(final_html)
+            
+            print(f'Generated {output_file_path}')
+
+if __name__ == "__main__":
+    process_blog_posts()
